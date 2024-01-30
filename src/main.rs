@@ -1,63 +1,45 @@
-use std::ops::{Add, Sub, Mul, Div};
-
-use structs::CachedRPN;
 mod structs;
 
-pub fn eval_rpn(tokens: Vec<String>) -> (f64, CachedRPN) {
+pub fn eval_rpn(tokens: Vec<String>) -> f64 {
 	let mut stack: Vec<f64> = Vec::new();
-	let mut cached_rpn: CachedRPN = CachedRPN {
-		numbers: Vec::new(),
-		operations: Vec::new()
-	};
 
 	for token in tokens {
 		match token.as_str() {
 			"+" => {
 				let (b, a) = (stack.pop().unwrap(), stack.pop().unwrap());
 				stack.push(a+b);
-				cached_rpn.operations.push(f64::add)
 
 			},
 			"-" => {
 				let (b, a) = (stack.pop().unwrap(), stack.pop().unwrap());
 				stack.push(a-b);
-				cached_rpn.operations.push(f64::sub)
 			},
 			"*" => {
 				let (b, a) = (stack.pop().unwrap(), stack.pop().unwrap());
 				stack.push(a*b);
-				cached_rpn.operations.push(f64::mul)
 			},
 			"/" => {
 				let (b, a) = (stack.pop().unwrap(), stack.pop().unwrap());
 				stack.push(a/b);
-				cached_rpn.operations.push(f64::div)
 			},
 			"^" => {
 				let (b, a) = (stack.pop().unwrap(), stack.pop().unwrap());
 				stack.push(a.powi(b as i32));
-				cached_rpn.operations.push(pow)
 			},
 			t => {
 				let num = t.parse::<f64>().unwrap();
 				stack.push(num);
-				cached_rpn.numbers.push(num);
 			}
 		}
 	}
 
-	(stack[0], cached_rpn)
+	stack[0]
 		
-}
-
-fn pow(b: f64, e: f64)  -> f64 {
-	b.powi(e as i32) as f64
 }
 
 
 // Bisection method of finding roots of an equation, f(x), using RPN
 fn main(){
-
 	// Define your f(x) e.g f(x) = x^2 - 6x + 8;
 
 	// Define a, b, where f(a) and f(b), have opposing signs (this implies a root of f(x) exists in the interval (a, b))
@@ -70,79 +52,45 @@ fn main(){
 
 	// Define the bisection formula, (a+b)/2 in form of RPN
 
-	let bisection_formula = vec![a.clone(), b.clone(), "+".to_string(), 2.to_string(), "/".to_string()];
+	let mut bisection_formula = vec![a.clone(), b.clone(), "+".to_string(), 2.to_string(), "/".to_string()];
 
 	// Get x₀, the initial value of the bisection of a and b
 
-	let (mut x, mut cached_bisection_formula) = eval_rpn(bisection_formula);
+	let mut x = eval_rpn(bisection_formula.clone());
 
-	// // Cast x₀ to a string for further re-evaluation;
+	// Define f(x) in form of RPN. Here, f(x) = x^2 - 6x + 8;
 
-	// // let mut x_as_str = x.to_string();
-
-	// Define f(x) in terms of RPN. Here, f(x) = x^2 - 6x + 8;
-
-	let f_x: Vec<String> = vec![&x.to_string() ,"2", "^", "6", &x.to_string(), "*", "-", "8", "+"].iter().map(|&s| s.to_string()).collect::<Vec<String>>();
-	let (_, mut cached_fx) = eval_rpn(f_x);
+	let mut f_x: Vec<String> = vec![&x.to_string() ,"2", "^", "6", &x.to_string(), "*", "-", "8", "+"].iter().map(|&s| s.to_string()).collect::<Vec<String>>();
 
 	// As long as "x" is not equal to "a" or b with a precision of 4 D.P, repeat the following steps:
 
-	while 
-		(x * 10000_f64) as i32 != (a.parse::<f64>().unwrap() * 10000_f64) as i32
-		||
-		(x * 10000_f64) as i32 != (b.parse::<f64>().unwrap() * 10000_f64) as i32 
-		{
-			
-	// 	// Get first_value f₀ , i.e f(x₀)
-		// let (mut value, cached_fx) = eval_rpn(
-		// 	f_x
-		// );
+	while  (x * 10000_f64) as i32 != (a.parse::<f64>().unwrap() * 10000_f64) as i32 || (x * 10000_f64) as i32 != (b.parse::<f64>().unwrap() * 10000_f64) as i32 {
 
-		let (value, _) = cached_fx.clone().evaluate();
+		let value= eval_rpn(f_x.clone());
+		println!("{}", x);
 
 		//	if value is negative, a becomes x, otherwise, b becomes x
 
+		println!("{}", value);
 		match  value < 0.0 {
 			true => {
 				a = x.to_string();
-				cached_bisection_formula.numbers[0] = x.clone();
+				bisection_formula[0] = a.clone();
 			},
 			_ => {
 				b = x.to_string();
-				cached_bisection_formula.numbers[1] = x.clone();
-			}
+				bisection_formula[1] = b.clone();
+		}
 		}
 
 		// Get the new "x" value
-		(x, _) = cached_bisection_formula.clone().evaluate();
+		x = eval_rpn(bisection_formula.clone());
 
-		// Input them in the RPN as needed
-		cached_fx.numbers[0] = x;
-		cached_fx.numbers[3] = x;
-
-
+		// Input the new "x" values in f(x) in case of re-evaluation
+		f_x[0] = x.to_string();
+		f_x[4] = x.to_string();
 
 	}
 
-	println!("Root of f(x): {:.2}", x);
-	
-
-
-	
-
-
-	// // Get first_value f₀ , i.e f(x₀)
-	// let (mut value, cached_fx) = eval_rpn(
-	// 	f_x
-	// );
-
-	// //	if value is negative, a becomes x, otherwise, b becomes x
-
-	// if value < 0.0 { a = x.to_string()} else {b = x.to_string()}
-
-	//
-
-	// println!("{}, {:?}", initial_result, cached_rpn)	;
-
-	// println!("{:?}", cached_rpn.evaluate())
+	println!("Root of f(x) = (x^2 - 6x + 8) is {:.2}", x);
 }
