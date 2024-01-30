@@ -1,3 +1,5 @@
+use crate::structs::RPNInfo;
+
 mod structs;
 
 pub fn eval_rpn(tokens: Vec<String>) -> f64 {
@@ -40,55 +42,68 @@ pub fn eval_rpn(tokens: Vec<String>) -> f64 {
 
 // Bisection method of finding roots of an equation, f(x), using RPN
 fn main(){
-	// Define your f(x) e.g f(x) = x^2 - 6x + 8;
+	// Define your f(x) e.g f(x) = x^2 - 5x + 6
 
 	// Define a, b, where f(a) and f(b), have opposing signs (this implies a root of f(x) exists in the interval (a, b))
-
-	// A root of f(x) above is 4: let a = 3, b = 7 (4 lies within [3, 7])
-
-	let (mut a, mut b) = (3.to_string(), 7.to_string());
-
-	// !  Note: f(a) = f(3) = negative value, f(b) = f(7) = positive value;
+	let (mut a, mut b) = ((2.5).to_string(), (10).to_string()); // Here a root, 3, exists between 2.5 and 10
 
 	// Define the bisection formula, (a+b)/2 in form of RPN
-
 	let mut bisection_formula = vec![a.clone(), b.clone(), "+".to_string(), 2.to_string(), "/".to_string()];
 
 	// Get x₀, the initial value of the bisection of a and b
-
 	let mut x = eval_rpn(bisection_formula.clone());
 
-	// Define f(x) in form of RPN. Here, f(x) = x^2 - 6x + 8;
+	// Define f(x) in form of RPN. Here, f(x) = x^2 - 5x + 6;
+	let mut f_x: Vec<String> = vec!["x" ,"2", "^", "5", "x", "*", "-", "6", "+"].iter().map(|&s| s.to_string()).collect::<Vec<String>>();
 
-	let mut f_x: Vec<String> = vec![&x.to_string() ,"2", "^", "6", &x.to_string(), "*", "-", "8", "+"].iter().map(|&s| s.to_string()).collect::<Vec<String>>();
+	
+	// Use our utility Struct to store all of f(x)'s information
+	let mut rpn_info = RPNInfo::new(f_x);
+	
+	// ! Get the value of f(a₀), this enables us tell wether to replace a with x, or b with x based on their signs
+	let mut f_a_val = rpn_info.immediate_eval(a.clone()).unwrap();
 
-	// As long as "x" is not equal to "a" or b, repeat the following steps:
+	// Initialize 'x' in our helper struct
+	rpn_info.update_x(x.to_string());
 
-	while  (x * 100_f64) as i32 != (a.parse::<f64>().unwrap() * 100_f64) as i32 || (x * 100_f64) as i32 != (b.parse::<f64>().unwrap() * 100_f64) as i32 {
+	// Set maximum number of bisections, in this case,20 to prevent infinite loop
+	let (mut bisections, max_bisections) = (0 ,20);
 
-		let value= eval_rpn(f_x.clone());
+	// As long as "x" is not equal to "a" or b to some degree, or bisections  limit not reached repeat the following steps:
 
-		//	if value is negative, a becomes x, otherwise, b becomes x
+	while 
+		(
+			(x * 10000_f64) as i32 != (a.parse::<f64>().unwrap() * 10000_f64) as i32
+				||
+			(x * 10000_f64) as i32 != (b.parse::<f64>().unwrap() * 10000_f64) as i32 
+		)
+			&&
+		bisections < max_bisections
+		{
 
-		match  value < 0.0 {
+		let value= rpn_info.evaluate().unwrap();
+
+		//	if 'value' and 'f(a₀)' have same signs, a becomes x, otherwise, b becomes x
+		match  (value < 0.0 && f_a_val < 0.0) || (value > 0.0 && f_a_val > 0.0) {
 			true => {
 				a = x.to_string();
 				bisection_formula[0] = a.clone();
 			},
-			_ => {
+			false => {
 				b = x.to_string();
 				bisection_formula[1] = b.clone();
-		}
+			}
 		}
 
-		// Get the new "x" value
+		// Get the new "x" value by further bisection
 		x = eval_rpn(bisection_formula.clone());
 
 		// Input the new "x" values in f(x) in case of re-evaluation
-		f_x[0] = x.to_string();
-		f_x[4] = x.to_string();
+		rpn_info.update_x(x.to_string());
+
+		bisections+=1;
 
 	}
 
-	println!("Root of f(x) = (x^2 - 6x + 8) is {:.2}", x);
+	println!("Root of f(x) is {:.2}", x);
 }
