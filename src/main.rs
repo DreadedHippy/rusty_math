@@ -62,16 +62,14 @@ fn main(){
 
 	let mut f_x: Vec<String> = vec![&x.to_string() ,"2", "^", "6", &x.to_string(), "*", "-", "8", "+"].iter().map(|&s| s.to_string()).collect::<Vec<String>>();
 
-	// As long as "x" is not equal to "a" or b with a precision of 4 D.P, repeat the following steps:
+	// As long as "x" is not equal to "a" or b, repeat the following steps:
 
-	while  (x * 10000_f64) as i32 != (a.parse::<f64>().unwrap() * 10000_f64) as i32 || (x * 10000_f64) as i32 != (b.parse::<f64>().unwrap() * 10000_f64) as i32 {
+	while  (x * 100_f64) as i32 != (a.parse::<f64>().unwrap() * 100_f64) as i32 || (x * 100_f64) as i32 != (b.parse::<f64>().unwrap() * 100_f64) as i32 {
 
 		let value= eval_rpn(f_x.clone());
-		println!("{}", x);
 
 		//	if value is negative, a becomes x, otherwise, b becomes x
 
-		println!("{}", value);
 		match  value < 0.0 {
 			true => {
 				a = x.to_string();
