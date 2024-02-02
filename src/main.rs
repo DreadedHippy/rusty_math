@@ -64,7 +64,7 @@ fn main(){
 	let mut f_a_val = rpn_info.immediate_eval(a.clone()).unwrap();
 
 	// Initialize 'x' in our helper struct
-	rpn_info.update_x(x.to_string());
+	rpn_info.update_x(x);
 
 	// Set maximum number of bisections, in this case,20 to prevent infinite loop
 	let (mut bisections, max_bisections) = (0 ,20);
@@ -99,7 +99,7 @@ fn main(){
 		x = eval_rpn(bisection_formula.clone());
 
 		// Input the new "x" values in f(x) in case of re-evaluation
-		rpn_info.update_x(x.to_string());
+		rpn_info.update_x(x);
 
 		bisections+=1;
 

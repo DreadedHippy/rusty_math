@@ -27,9 +27,10 @@ impl RPNInfo {
 			}
 		}
 
-		pub fn update_x(&mut self, x: String) {
+		pub fn update_x(&mut self, new_x: f64) {
+			let new_x = new_x.to_string();
 			for index in self.x_indexes.clone() {
-				self.rpn[index] = x.clone()
+				self.rpn[index] = new_x.clone()
 			}
 
 			self.x_initialized = true
